@@ -5,16 +5,83 @@ Student Learning & Career Platform
 
 import streamlit as st
 import streamlit as st
+import streamlit as st
 
-# 1. CSS load karne ke liye yeh line add karein
-def local_css(file_name):
-    with open(file_name) as f:
-        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+# Direct CSS Injection (No File Required)
+st.markdown("""
+<style>
+/* Sidebar dark theme */
+[data-testid="stSidebar"] {
+    background-color: #1e293b !important;
+}
 
-local_css('style.css')
+/* LCS Brand styling */
+.lcs-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 12px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #334155;
+}
 
+.lcs-brand-badge {
+    background-color: #0284c7;
+    color: #ffffff;
+    font-weight: bold;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
 
-# 2. Aapka Sidebar Block
+.lcs-brand-title {
+    color: #ffffff !important;
+    font-weight: bold;
+    margin: 0 !important;
+    font-size: 1rem;
+}
+
+.lcs-brand-sub {
+    color: #94a3b8 !important;
+    margin: 0 !important;
+    font-size: 0.75rem;
+}
+
+/* Compact Sidebar Buttons */
+[data-testid="stSidebar"] .stButton > button {
+    width: 100%;
+    padding: 5px 10px !important;
+    background-color: transparent !important;
+    color: #cbd5e1 !important;
+    border: 1px solid #334155 !important;
+    border-radius: 6px !important;
+    font-size: 0.85rem !important;
+    text-align: left !important;
+    transition: all 0.2s ease !important;
+}
+
+[data-testid="stSidebar"] .stButton > button:hover {
+    background-color: #334155 !important;
+    color: #ffffff !important;
+    border-color: #38bdf8 !important;
+}
+
+/* Live Agent Button - Teal Color */
+div.element-container:has(#live-agent-marker) + div .stButton > button {
+    background-color: #0f766e !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    border: none !important;
+    padding: 7px 10px !important;
+}
+
+div.element-container:has(#live-agent-marker) + div .stButton > button:hover {
+    background-color: #0d9488 !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# Sidebar UI
 with st.sidebar:
     st.markdown("""
     <div class="lcs-brand">
@@ -26,7 +93,7 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    # Buttons
+    # Compact Navigation Buttons
     st.button("🏠 Dashboard")
     st.button("📊 Analytics")
     st.button("📁 Projects")
@@ -35,7 +102,7 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # Live Agent Button Marker
+    # Live Agent Button
     st.markdown('<div id="live-agent-marker"></div>', unsafe_allow_html=True)
     if st.button("🎧 Live Agent"):
         st.write("Live Agent Connected!")
