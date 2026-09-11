@@ -1,35 +1,65 @@
-/* Sidebar dark theme & background */
+/* Sidebar dark theme */
 [data-testid="stSidebar"] {
     background-color: #1e293b !important;
 }
 
-/* Sidebar menu buttons styling */
-[data-testid="stSidebar"] .stButton > button {
-    width: 100%;
-    padding: 6px 10px !important; /* Compact button size */
-    background-color: transparent !important;
-    color: #94a3b8 !important;
-    border: 1px solid #334155 !important;
-    border-radius: 6px !important;
-    font-size: 0.88rem !important;
-    text-align: left !important;
-    transition: all 0.2s ease !important;
+/* LCS Brand styling */
+.lcs-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 12px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #334155;
 }
 
-/* Hover effect */
+.lcs-brand-badge {
+    background-color: #0284c7;
+    color: #ffffff;
+    font-weight: bold;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
+
+.lcs-brand-title {
+    color: #ffffff !important;
+    font-weight: bold;
+    margin: 0 !important;
+    font-size: 1rem;
+}
+
+.lcs-brand-sub {
+    color: #94a3b8 !important;
+    margin: 0 !important;
+    font-size: 0.75rem;
+}
+
+/* Compact Buttons Size */
+[data-testid="stSidebar"] .stButton > button {
+    width: 100%;
+    padding: 5px 10px !important;
+    background-color: transparent !important;
+    color: #cbd5e1 !important;
+    border: 1px solid #334155 !important;
+    border-radius: 6px !important;
+    font-size: 0.85rem !important;
+    text-align: left !important;
+}
+
 [data-testid="stSidebar"] .stButton > button:hover {
     background-color: #334155 !important;
     color: #ffffff !important;
     border-color: #38bdf8 !important;
 }
 
-/* Live Agent Button - specific styling */
+/* Live Agent Button Teal Color */
 div.element-container:has(#live-agent-marker) + div .stButton > button {
-    background-color: #0f766e !important; /* Teal Color */
+    background-color: #0f766e !important;
     color: #ffffff !important;
-    font-weight: bold !important;
+    font-weight: 600 !important;
     border: none !important;
-    padding: 8px 10px !important;
+    padding: 7px 10px !important;
 }
 
 div.element-container:has(#live-agent-marker) + div .stButton > button:hover {
