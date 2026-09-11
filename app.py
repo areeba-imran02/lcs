@@ -1230,3 +1230,1008 @@ def render_subjects_page():
                 profile["subjects"].append(new_subject.strip())
                 st.success(f"Added subject: {new_subject.strip()}")
                 st.rerun()
+
+    st.write("")
+    st.markdown("#### Your Subjects")
+
+    if not profile.get("subjects"):
+        st.markdown('<p class="lcs-empty-state">No subjects added yet. Use the form above to add your first subject.</p>', unsafe_allow_html=True)
+        return
+
+    for subject in list(profile["subjects"]):
+        subject_topics = [t for t, v in topics.items() if v["subject"] == subject]
+        strong_count = len([t for t in subject_topics if topics[t]["status"] == "Strong"])
+
+        card_col, action_col = st.columns([5, 1])
+        with card_col:
+            st.markdown(f"""
+            <div class="lcs-card">
+                <b>{subject}</b><br>
+                <span style="color:#6b7280; font-size:13px;">
+                    {len(subject_topics)} topic(s) tracked {strong_count} marked Strong
+                </span>
+            </div>
+            """, unsafe_allow_html=True)
+        with action_col:
+            st.write("")
+            if st.button("Remove", key=f"remove_subject_{subject}"):
+                profile["subjects"].remove(subject)
+                st.success(f"Removed subject: {subject}")
+                st.rerun()
+
+# ============================================================
+# ROADMAP PAGE
+# ============================================================
+def render_roadmap_page():
+    st.markdown("#### Auto Generated From Your Topics")
+    topics = st.session_state.study_data["topics"]
+    if topics:
+        rows = sorted(
+            [{"Topic": k, "Subject": v["subject"], "Status": v["status"]} for k, v in topics.items()],
+            key=lambda r: STATUS_WEIGHTS.get(r["Status"], 0)
+        )
+        st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+    else:
+        st.markdown('<p class="lcs-empty-state">Add subjects and study topics to auto populate your roadmap.</p>', unsafe_allow_html=True)
+
+    st.write("")
+    st.markdown("#### Add a Milestone")
+    with st.form("add_roadmap_milestone", clear_on_submit=True):
+        c1, c2, c3 = st.columns([2, 1, 1])
+        with c1:
+            milestone = st.text_input("Milestone", placeholder="e.g. Finish Data Structures basics")
+        with c2:
+            target_date = st.date_input("Target Date", value=datetime.now() + timedelta(days=14))
+        with c3:
+            status = st.selectbox("Status", options=["Planned", "In Progress", "Done"])
+        submitted = st.form_submit_button("Add Milestone")
+        if submitted:
+            if not milestone.strip():
+                st.error("Please enter a milestone description.")
+            else:
+                st.session_state.study_data["roadmap"].append({
+                    "Milestone": milestone.strip(),
+                    "Target Date": target_date.strftime("%Y-%m-%d"),
+                    "Status": status,
+                })
+                st.success("Milestone added to your roadmap.")
+                st.rerun()
+
+    st.write("")
+    st.markdown("#### Your Roadmap")
+    roadmap = st.session_state.study_data.get("roadmap", [])
+    if roadmap:
+        st.dataframe(pd.DataFrame(roadmap), use_container_width=True, hide_index=True)
+    else:
+        st.markdown('<p class="lcs-empty-state">No milestones added yet.</p>', unsafe_allow_html=True)
+
+# ============================================================
+# PLANNER PAGE
+# ============================================================
+def render_planner_page():
+    with st.form("add_planner_task", clear_on_submit=True):
+        c1, c2, c3 = st.columns([2, 1, 1])
+        with c1:
+            task = st.text_input("Task", placeholder="e.g. Revise Chapter 4 for Physics")
+        with c2:
+            due_date = st.date_input("Due Date", value=datetime.now() + timedelta(days=3))
+        with c3:
+            priority = st.selectbox("Priority", options=["Low", "Medium", "High"], index=1)
+        submitted = st.form_submit_button("Add Task")
+        if submitted:
+            if not task.strip():
+                st.error("Please enter a task description.")
+            else:
+                st.session_state.study_data["planner"].append({
+                    "Task": task.strip(),
+                    "Due Date": due_date.strftime("%Y-%m-%d"),
+                    "Priority": priority,
+                    "status": "Pending",
+                })
+                st.success("Task added to your planner.")
+                st.rerun()
+
+    st.write("")
+    st.markdown("#### Your Tasks")
+    planner = st.session_state.study_data.get("planner", [])
+    if not planner:
+        st.markdown('<p class="lcs-empty-state">No tasks yet. Add your first study task above.</p>', unsafe_allow_html=True)
+        return
+
+    for i, t in enumerate(planner):
+        c1, c2, c3 = st.columns([4, 1, 1])
+        badge_class = "lcs-badge-teal" if t["status"] == "Done" else "lcs-badge-amber"
+        with c1:
+            st.markdown(f"""
+            <div class="lcs-card">
+                <b>{t['Task']}</b><br>
+                <span style="color:#6b7280; font-size:13px;">Due {t['Due Date']} Priority: {t['Priority']}</span>
+                <span class="{badge_class}">{t['status']}</span>
+            </div>
+            """, unsafe_allow_html=True)
+        with c2:
+            if t["status"] != "Done" and st.button("Mark Done", key=f"planner_done_{i}"):
+                st.session_state.study_data["planner"][i]["status"] = "Done"
+                st.rerun()
+        with c3:
+            if st.button("Remove", key=f"planner_remove_{i}"):
+                st.session_state.study_data["planner"].pop(i)
+                st.rerun()
+
+# ============================================================
+# NOTES PAGE
+# ============================================================
+def render_notes_page():
+    profile = st.session_state.profile
+    notes = st.session_state.study_data["notes"]
+
+    with st.form("add_note_form", clear_on_submit=True):
+        c1, c2 = st.columns([1, 1])
+        with c1:
+            subject = st.selectbox("Subject", options=(profile.get("subjects") or ["General"]))
+        with c2:
+            title = st.text_input("Note Title", placeholder="e.g. Normalization Rules")
+        body = st.text_area("Note Content", height=120, placeholder="Write your notes here...")
+        submitted = st.form_submit_button("Save Note")
+        if submitted:
+            if not title.strip() or not body.strip():
+                st.error("Please provide both a title and note content.")
+            else:
+                notes.setdefault(subject, []).append({
+                    "title": title.strip(), "body": body.strip(),
+                    "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                })
+                st.success("Note saved.")
+                st.rerun()
+
+    st.write("")
+    st.markdown("#### Your Notes")
+    if not notes:
+        st.markdown('<p class="lcs-empty-state">No notes yet. Add your first note above.</p>', unsafe_allow_html=True)
+        return
+
+    for subject, note_list in notes.items():
+        st.markdown(f"**{subject}**")
+        for i, n in enumerate(note_list):
+            with st.expander(f"{n['title']} {n['date']}"):
+                st.write(n["body"])
+                if st.button("Delete Note", key=f"del_note_{subject}_{i}"):
+                    notes[subject].pop(i)
+                    st.rerun()
+
+# ============================================================
+# QUIZZES PAGE
+# ============================================================
+def build_quiz_messages(subject, topic, difficulty):
+    system_prompt = (
+        "You are a quiz generator for an educational platform. Respond ONLY with valid JSON, no extra text. "
+        'JSON schema: {"questions": [{"question": str, "options": [str,str,str,str], '
+        '"correct_index": int (0-3), "explanation": str}]}. Generate exactly 5 questions. '
+        "Do not include emojis."
+    )
+    user_prompt = f"Subject: {subject}\nTopic: {topic}\nDifficulty: {difficulty}\nGenerate the quiz now."
+    return [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}]
+
+def render_quizzes_page():
+    profile = st.session_state.profile
+
+    if "current_quiz" not in st.session_state:
+        st.session_state.current_quiz = None
+
+    c1, c2, c3 = st.columns([1, 1, 1])
+    with c1:
+        subject = st.selectbox("Subject", options=(profile.get("subjects") or ["General"]), key="quiz_subject")
+    with c2:
+        topic = st.text_input("Topic", placeholder="e.g. Binary Trees", key="quiz_topic")
+    with c3:
+        difficulty = st.selectbox("Difficulty", options=["Easy", "Medium", "Hard"], key="quiz_difficulty")
+
+    if st.button("Generate Quiz", key="gen_quiz_btn"):
+        if not topic:
+            st.error("Please enter a topic.")
+        else:
+            with st.spinner("Building your quiz..."):
+                messages = build_quiz_messages(subject, topic, difficulty)
+                parsed, raw = call_groq_json(messages)
+            if parsed and parsed.get("questions"):
+                st.session_state.current_quiz = {"subject": subject, "topic": topic, "questions": parsed["questions"], "answers": {}}
+            else:
+                st.error("Could not generate a quiz right now. Please try again.")
+            st.rerun()
+
+    quiz = st.session_state.current_quiz
+    if quiz:
+        st.write("")
+        st.markdown(f'<span class="lcs-badge-teal">{quiz["subject"]} {quiz["topic"]}</span>', unsafe_allow_html=True)
+        with st.form("quiz_form"):
+            for i, q in enumerate(quiz["questions"]):
+                st.markdown(f"**Q{i+1}. {q['question']}**")
+                choice = st.radio("Select an answer", options=list(range(len(q["options"]))),
+                                   format_func=lambda idx, opts=q["options"]: opts[idx],
+                                   key=f"quiz_q_{i}", label_visibility="collapsed")
+                quiz["answers"][i] = choice
+                st.write("")
+            submit_quiz = st.form_submit_button("Submit Quiz")
+
+        if submit_quiz:
+            total = len(quiz["questions"])
+            correct = sum(1 for i, q in enumerate(quiz["questions"]) if quiz["answers"].get(i) == q["correct_index"])
+            score_pct = round((correct / total) * 100) if total else 0
+            st.session_state.study_data["quiz_history"].append({
+                "Date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "Subject": quiz["subject"], "Topic": quiz["topic"],
+                "Score": f"{correct}/{total}", "Score %": score_pct,
+            })
+            if score_pct < 60:
+                weak = st.session_state.study_data["weak_topics"]
+                if quiz["topic"] not in weak:
+                    weak.append(quiz["topic"])
+            upsert_topic(quiz["subject"], quiz["topic"], status="Needs Revision" if score_pct < 60 else "Strong")
+
+            st.success(f"You scored {correct}/{total} ({score_pct}%).")
+            for i, q in enumerate(quiz["questions"]):
+                is_correct = quiz["answers"].get(i) == q["correct_index"]
+                st.markdown(f"""
+                <div class="lcs-card">
+                    <b>Q{i+1}. {q['question']}</b><br>
+                    <span style="color:#6b7280;">Correct answer: {q['options'][q['correct_index']]}</span><br>
+                    <span style="color:#6b7280; font-size:13px;">{q.get('explanation','')}</span>
+                </div>
+                """, unsafe_allow_html=True)
+            st.session_state.current_quiz = None
+
+    st.write("")
+    st.markdown("#### Quiz History")
+    quiz_history = st.session_state.study_data.get("quiz_history", [])
+    if quiz_history:
+        st.dataframe(pd.DataFrame(quiz_history), use_container_width=True, hide_index=True)
+    else:
+        st.markdown('<p class="lcs-empty-state">No quizzes attempted yet.</p>', unsafe_allow_html=True)
+
+# ============================================================
+# MOCK EXAMS PAGE
+# ============================================================
+def build_mock_exam_messages(subjects, education_level):
+    system_prompt = (
+        "You are a mock exam generator for an educational platform. Respond ONLY with valid JSON, no extra text. "
+        'JSON schema: {"questions": [{"question": str, "options": [str,str,str,str], '
+        '"correct_index": int (0-3), "subject": str}]}. Generate exactly 8 questions spread across '
+        "the given subjects, appropriate to the education level. Do not include emojis."
+    )
+    user_prompt = f"Subjects: {list_to_csv(subjects)}\nEducation Level: {education_level}\nGenerate the mock exam now."
+    return [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}]
+
+def render_mock_exams_page():
+    profile = st.session_state.profile
+    subjects = profile.get("subjects", [])
+
+    st.info("Suggested time: 20 minutes 8 questions across your subjects.")
+    if "current_mock_exam" not in st.session_state:
+        st.session_state.current_mock_exam = None
+
+    if not subjects:
+        st.markdown('<p class="lcs-empty-state">Add subjects in the Subjects page first to generate a mock exam.</p>', unsafe_allow_html=True)
+        return
+
+    if st.button("Generate Mock Exam", key="gen_mock_exam_btn"):
+        with st.spinner("Assembling your mock exam..."):
+            messages = build_mock_exam_messages(subjects, profile.get("education_level", ""))
+            parsed, raw = call_groq_json(messages)
+        if parsed and parsed.get("questions"):
+            st.session_state.current_mock_exam = {"questions": parsed["questions"], "answers": {}}
+        else:
+            st.error("Could not generate a mock exam right now. Please try again.")
+        st.rerun()
+
+    exam = st.session_state.current_mock_exam
+    if exam:
+        with st.form("mock_exam_form"):
+            for i, q in enumerate(exam["questions"]):
+                st.markdown(f"**Q{i+1}. ({q.get('subject','General')}) {q['question']}**")
+                choice = st.radio("Select an answer", options=list(range(len(q["options"]))),
+                                   format_func=lambda idx, opts=q["options"]: opts[idx],
+                                   key=f"mock_q_{i}", label_visibility="collapsed")
+                exam["answers"][i] = choice
+                st.write("")
+            submit_exam = st.form_submit_button("Submit Exam")
+
+        if submit_exam:
+            total = len(exam["questions"])
+            correct = sum(1 for i, q in enumerate(exam["questions"]) if exam["answers"].get(i) == q["correct_index"])
+            score_pct = round((correct / total) * 100) if total else 0
+            st.session_state.study_data["quiz_history"].append({
+                "Date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "Subject": "Mock Exam", "Topic": "Multi subject",
+                "Score": f"{correct}/{total}", "Score %": score_pct,
+            })
+            st.success(f"Mock Exam complete you scored {correct}/{total} ({score_pct}%).")
+            st.session_state.current_mock_exam = None
+
+# ============================================================
+# PROGRESS PAGE
+# ============================================================
+def render_progress_page():
+    quiz_history = st.session_state.study_data.get("quiz_history", [])
+    topics = st.session_state.study_data.get("topics", {})
+
+    k1, k2, k3 = st.columns(3)
+    k1.metric("Topics Tracked", len(topics))
+    k2.metric("Quizzes Taken", len(quiz_history))
+    avg_score = round(sum(q.get("Score %", 0) for q in quiz_history) / len(quiz_history)) if quiz_history else 0
+    k3.metric("Average Quiz Score", f"{avg_score}%")
+
+    st.write("")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("#### Score Trend")
+        if quiz_history:
+            fig = go.Figure(data=[go.Scatter(
+                x=[q["Date"] for q in quiz_history], y=[q.get("Score %", 0) for q in quiz_history],
+                mode="lines+markers", line=dict(color=COLORS["purple"], width=3)
+            )])
+            fig.update_layout(height=280, margin=dict(l=10, r=10, t=10, b=10),
+                               paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.markdown('<p class="lcs-empty-state">Take a quiz to see your score trend.</p>', unsafe_allow_html=True)
+
+    with col2:
+        st.markdown("#### Topic Status Breakdown")
+        if topics:
+            status_counts = {}
+            for t in topics.values():
+                status_counts[t["status"]] = status_counts.get(t["status"], 0) + 1
+            fig = go.Figure(data=[go.Pie(labels=list(status_counts.keys()), values=list(status_counts.values()),
+                                          marker=dict(colors=[COLORS["purple"], COLORS["teal"], COLORS["rose"], COLORS["amber"], COLORS["cyan"]]))])
+            fig.update_layout(height=280, margin=dict(l=10, r=10, t=10, b=10))
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.markdown('<p class="lcs-empty-state">Track topics to see your status breakdown.</p>', unsafe_allow_html=True)
+
+# ============================================================
+# DISCOVER (CAREER MATCHES) PAGE
+# ============================================================
+def build_career_discovery_messages(profile):
+    system_prompt = (
+        "You are a career guidance engine. Respond ONLY with valid JSON, no extra text. "
+        'JSON schema: {"careers": [{"career": str, "match_pct": int (0-100), "reason": str}]}. '
+        "Suggest exactly 5 careers ranked by fit. Do not include emojis."
+    )
+    user_prompt = (
+        f"Subjects: {list_to_csv(profile.get('subjects', []))}\n"
+        f"Skills: {list_to_csv(profile.get('skills', []))}\n"
+        f"Interests: {list_to_csv(profile.get('interests', []))}\n"
+        f"Career Goal: {profile.get('career_goal') or 'Not specified'}\n"
+        "Suggest careers that best match this student."
+    )
+    return [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}]
+
+def render_discover_page():
+    profile = st.session_state.profile
+    if not profile.get("skills") and not profile.get("subjects"):
+        st.warning("Add some subjects, skills, or interests in My Profile for better career matches.")
+
+    if st.button("Find Career Matches", key="discover_btn"):
+        with st.spinner("Analyzing your profile against career paths..."):
+            messages = build_career_discovery_messages(profile)
+            parsed, raw = call_groq_json(messages)
+        if parsed and parsed.get("careers"):
+            st.session_state.career_data["matches"] = [
+                {"career": c["career"], "match_pct": c["match_pct"], "reason": c.get("reason", "")}
+                for c in parsed["careers"]
+            ]
+            st.success("Career matches updated.")
+        else:
+            st.error("Could not generate career matches right now. Please try again.")
+        st.rerun()
+
+    st.write("")
+    matches = st.session_state.career_data.get("matches", [])
+    if matches:
+        sorted_matches = sorted(matches, key=lambda m: m["match_pct"], reverse=True)
+        for m in sorted_matches:
+            st.markdown(f"""
+            <div class="lcs-card">
+                <b>{m['career']}</b>
+                <span class="lcs-badge-teal">{m['match_pct']}% match</span><br>
+                <span style="color:#6b7280; font-size:13px;">{m['reason']}</span>
+            </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.markdown('<p class="lcs-empty-state">Click Find Career Matches to discover careers suited to you.</p>', unsafe_allow_html=True)
+
+# ============================================================
+# SKILLS PAGE
+# ============================================================
+def render_skills_page():
+    profile = st.session_state.profile
+
+    with st.form("add_skill_form", clear_on_submit=True):
+        c1, c2 = st.columns([3, 1])
+        with c1:
+            new_skill = st.text_input("New Skill", placeholder="e.g. Python Programming")
+        with c2:
+            st.write("")
+            st.write("")
+            add_clicked = st.form_submit_button("Add Skill")
+        if add_clicked:
+            if not new_skill.strip():
+                st.error("Please enter a skill name.")
+            elif new_skill.strip() in profile["skills"]:
+                st.warning("This skill has already been added.")
+            else:
+                profile["skills"].append(new_skill.strip())
+                st.success(f"Added skill: {new_skill.strip()}")
+                st.rerun()
+
+    st.write("")
+    st.markdown(f"#### Skill Strength: {compute_skill_strength()}%")
+    if profile.get("skills"):
+        for skill in list(profile["skills"]):
+            c1, c2 = st.columns([5, 1])
+            with c1:
+                st.markdown(f'<div class="lcs-card">{skill}</div>', unsafe_allow_html=True)
+            with c2:
+                if st.button("Remove", key=f"remove_skill_{skill}"):
+                    profile["skills"].remove(skill)
+                    st.rerun()
+    else:
+        st.markdown('<p class="lcs-empty-state">No skills added yet. Use the form above.</p>', unsafe_allow_html=True)
+
+# ============================================================
+# SKILL GAP PAGE
+# ============================================================
+def build_skill_gap_messages(career, profile):
+    system_prompt = (
+        "You are a career skills advisor. Respond ONLY with valid JSON, no extra text. "
+        'JSON schema: {"missing_skills": [str], "recommendations": [str]}. '
+        "List 4 to 6 missing skills and 3 to 4 recommendations. Do not include emojis."
+    )
+    user_prompt = (
+        f"Target career: {career}\n"
+        f"Current skills: {list_to_csv(profile.get('skills', []))}\n"
+        "Identify the skill gap for this student to become competitive for this career."
+    )
+    return [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}]
+
+def render_skill_gap_page():
+    profile = st.session_state.profile
+    matches = st.session_state.career_data.get("matches", [])
+    career_options = [m["career"] for m in matches] + ["Other (type below)"]
+
+    c1, c2 = st.columns([2, 1])
+    with c1:
+        if matches:
+            selected = st.selectbox("Target Career", options=career_options)
+            career = st.text_input("Enter Career Name", key="skillgap_custom") if selected == "Other (type below)" else selected
+        else:
+            career = st.text_input("Target Career", placeholder="e.g. Data Analyst")
+    with c2:
+        st.write("")
+        st.write("")
+        analyze_clicked = st.button("Analyze Skill Gap")
+
+    if analyze_clicked:
+        if not career:
+            st.error("Please provide a target career.")
+        else:
+            with st.spinner("Analyzing your skill gap..."):
+                messages = build_skill_gap_messages(career, profile)
+                parsed, raw = call_groq_json(messages)
+            if parsed:
+                existing = [g for g in st.session_state.career_data["skill_gaps"] if g["career"] != career]
+                existing.append({"career": career, "missing_skills": parsed.get("missing_skills", []),
+                                  "recommendations": parsed.get("recommendations", [])})
+                st.session_state.career_data["skill_gaps"] = existing
+                st.success("Skill gap analysis complete.")
+            else:
+                st.error("Could not analyze skill gap right now.")
+            st.rerun()
+
+    st.write("")
+    gaps = st.session_state.career_data.get("skill_gaps", [])
+    if gaps:
+        for g in gaps:
+            st.markdown(f"**{g['career']}**")
+            st.markdown("Missing skills:")
+            st.markdown("".join([f'<span class="lcs-badge-purple">{s}</span>' for s in g["missing_skills"]]), unsafe_allow_html=True)
+            if g.get("recommendations"):
+                st.markdown("Recommendations:")
+                for r in g["recommendations"]:
+                    st.markdown(f"• {r}")
+            st.write("")
+    else:
+        st.markdown('<p class="lcs-empty-state">Analyze a career above to see your skill gap.</p>', unsafe_allow_html=True)
+
+# ============================================================
+# CAREER ROADMAP PAGE
+# ============================================================
+def build_career_roadmap_messages(profile, gaps):
+    system_prompt = (
+        "You are a career roadmap planner. Respond ONLY with valid JSON, no extra text. "
+        'JSON schema: {"steps": [{"Step": str, "Timeframe": str, "Description": str}]}. '
+        "Generate exactly 5 sequential steps. Do not include emojis."
+    )
+    missing = []
+    for g in gaps:
+        missing.extend(g.get("missing_skills", []))
+    user_prompt = (
+        f"Career Goal: {profile.get('career_goal') or 'Not specified'}\n"
+        f"Current Skills: {list_to_csv(profile.get('skills', []))}\n"
+        f"Missing Skills: {list_to_csv(missing)}\n"
+        "Build a step by step roadmap toward this career goal."
+    )
+    return [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}]
+
+def render_career_roadmap_page():
+    profile = st.session_state.profile
+    gaps = st.session_state.career_data.get("skill_gaps", [])
+
+    if not profile.get("career_goal"):
+        st.warning("Set a Career Goal in My Profile for a more accurate roadmap.")
+
+    if st.button("Generate Career Roadmap"):
+        with st.spinner("Building your career roadmap..."):
+            messages = build_career_roadmap_messages(profile, gaps)
+            parsed, raw = call_groq_json(messages)
+        if parsed and parsed.get("steps"):
+            st.session_state.career_data["roadmap"] = parsed["steps"]
+            st.success("Career roadmap generated.")
+        else:
+            st.error("Could not generate a roadmap right now.")
+        st.rerun()
+
+    st.write("")
+    roadmap = st.session_state.career_data.get("roadmap", [])
+    if roadmap:
+        st.dataframe(pd.DataFrame(roadmap), use_container_width=True, hide_index=True)
+    else:
+        st.markdown('<p class="lcs-empty-state">Click Generate Career Roadmap above to build your path.</p>', unsafe_allow_html=True)
+
+# ============================================================
+# PROJECTS PAGE
+# ============================================================
+def render_projects_page():
+    with st.form("add_project_form", clear_on_submit=True):
+        c1, c2 = st.columns([2, 1])
+        with c1:
+            name = st.text_input("Project Name", placeholder="e.g. Student Result Management System")
+        with c2:
+            status = st.selectbox("Status", options=["Planned", "In Progress", "Completed"])
+        description = st.text_area("Description", height=80)
+        skills_used = st.text_input("Skills Used (comma separated)")
+        submitted = st.form_submit_button("Add Project")
+        if submitted:
+            if not name.strip():
+                st.error("Please enter a project name.")
+            else:
+                st.session_state.career_data["projects"].append({
+                    "name": name.strip(), "status": status, "description": description.strip(),
+                    "skills": parse_csv_field(skills_used),
+                })
+                st.success("Project added.")
+                st.rerun()
+
+    st.write("")
+    st.markdown("#### Your Portfolio Projects")
+    projects = st.session_state.career_data.get("projects", [])
+    if not projects:
+        st.markdown('<p class="lcs-empty-state">No projects tracked yet. Add your first one above.</p>', unsafe_allow_html=True)
+        return
+
+    for i, p in enumerate(projects):
+        c1, c2 = st.columns([5, 1])
+        with c1:
+            skills_html = "".join([f'<span class="lcs-badge-purple">{s}</span>' for s in p.get("skills", [])])
+            st.markdown(f"""
+            <div class="lcs-card">
+                <b>{p['name']}</b> <span class="lcs-badge-teal">{p['status']}</span><br>
+                <span style="color:#6b7280; font-size:13px;">{p.get('description','')}</span><br>
+                {skills_html}
+            </div>
+            """, unsafe_allow_html=True)
+        with c2:
+            if st.button("Remove", key=f"remove_project_{i}"):
+                st.session_state.career_data["projects"].pop(i)
+                st.rerun()
+
+# ============================================================
+# CERTIFICATIONS PAGE
+# ============================================================
+def render_certifications_page():
+    with st.form("add_cert_form", clear_on_submit=True):
+        c1, c2, c3 = st.columns([2, 1, 1])
+        with c1:
+            name = st.text_input("Certification Name", placeholder="e.g. Google Data Analytics")
+        with c2:
+            provider = st.text_input("Provider", placeholder="e.g. Coursera")
+        with c3:
+            status = st.selectbox("Status", options=["Planned", "In Progress", "Earned"])
+        submitted = st.form_submit_button("Add Certification")
+        if submitted:
+            if not name.strip():
+                st.error("Please enter a certification name.")
+            else:
+                st.session_state.career_data["certifications"].append({
+                    "name": name.strip(), "provider": provider.strip(), "status": status,
+                    "date": datetime.now().strftime("%Y-%m-%d"),
+                })
+                st.success("Certification added.")
+                st.rerun()
+
+    st.write("")
+    certs = st.session_state.career_data.get("certifications", [])
+    if certs:
+        st.dataframe(pd.DataFrame(certs), use_container_width=True, hide_index=True)
+    else:
+        st.markdown('<p class="lcs-empty-state">No certifications tracked yet.</p>', unsafe_allow_html=True)
+
+# ============================================================
+# CV ANALYZER PAGE
+# ============================================================
+def build_cv_analysis_messages(cv_text):
+    system_prompt = (
+        "You are a CV/resume reviewer. Respond ONLY with valid JSON, no extra text. "
+        'JSON schema: {"score": int (0-100), "strengths": [str], "weaknesses": [str], "suggestions": [str]}. '
+        "Do not include emojis."
+    )
+    return [{"role": "system", "content": system_prompt}, {"role": "user", "content": f"CV Text:\n{cv_text}"}]
+
+def render_cv_analyzer_page():
+    cv_text = st.text_area("Paste your CV text here", height=220, placeholder="Paste the full text of your CV...")
+    if st.button("Analyze CV"):
+        if not cv_text.strip():
+            st.error("Please paste your CV text first.")
+        else:
+            with st.spinner("Analyzing your CV..."):
+                messages = build_cv_analysis_messages(cv_text)
+                parsed, raw = call_groq_json(messages)
+            if parsed:
+                st.session_state.prep_data["cv_analysis"] = parsed
+                st.success("CV analysis complete.")
+            else:
+                st.error("Could not analyze your CV right now.")
+            st.rerun()
+
+    st.write("")
+    analysis = st.session_state.prep_data.get("cv_analysis")
+    if analysis:
+        st.metric("CV Score", f"{analysis.get('score', 0)}/100")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("#### Strengths")
+            for s in analysis.get("strengths", []):
+                st.markdown(f"• {s}")
+        with col2:
+            st.markdown("#### Weaknesses")
+            for w in analysis.get("weaknesses", []):
+                st.markdown(f"• {w}")
+        st.markdown("#### Suggestions")
+        for s in analysis.get("suggestions", []):
+            st.markdown(f"• {s}")
+    else:
+        st.markdown('<p class="lcs-empty-state">Paste your CV above and click Analyze CV.</p>', unsafe_allow_html=True)
+
+# ============================================================
+# JOB MATCHER PAGE
+# ============================================================
+def build_job_match_messages(job_description, profile):
+    system_prompt = (
+        "You are a job fit analyzer. Respond ONLY with valid JSON, no extra text. "
+        'JSON schema: {"match_pct": int (0-100), "matching_skills": [str], "missing_skills": [str], "recommendation": str}. '
+        "Do not include emojis."
+    )
+    user_prompt = (
+        f"Candidate skills: {list_to_csv(profile.get('skills', []))}\n"
+        f"Candidate subjects: {list_to_csv(profile.get('subjects', []))}\n"
+        f"Job Description:\n{job_description}"
+    )
+    return [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}]
+
+def render_job_matcher_page():
+    profile = st.session_state.profile
+    job_title = st.text_input("Job Title", placeholder="e.g. Junior Data Analyst")
+    job_description = st.text_area("Paste Job Description", height=180)
+
+    if st.button("Match This Job"):
+        if not job_description.strip():
+            st.error("Please paste a job description first.")
+        else:
+            with st.spinner("Comparing job description to your profile..."):
+                messages = build_job_match_messages(job_description, profile)
+                parsed, raw = call_groq_json(messages)
+            if parsed:
+                st.session_state.prep_data["job_matches"].append({
+                    "title": job_title or "Untitled Job", "match_pct": parsed.get("match_pct", 0),
+                    "matching_skills": parsed.get("matching_skills", []),
+                    "missing_skills": parsed.get("missing_skills", []),
+                    "recommendation": parsed.get("recommendation", ""),
+                    "date": datetime.now().strftime("%Y-%m-%d"),
+                })
+                st.success("Job match analysis complete.")
+            else:
+                st.error("Could not analyze this job right now.")
+            st.rerun()
+
+    st.write("")
+    matches = st.session_state.prep_data.get("job_matches", [])
+    if matches:
+        for m in reversed(matches):
+            st.markdown(f"""
+            <div class="lcs-card">
+                <b>{m['title']}</b> <span class="lcs-badge-teal">{m['match_pct']}% match</span><br>
+                <span style="color:#6b7280; font-size:13px;">{m['recommendation']}</span>
+            </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.markdown('<p class="lcs-empty-state">Paste a job description above to see your match.</p>', unsafe_allow_html=True)
+
+# ============================================================
+# INTERNSHIPS PAGE
+# ============================================================
+def build_internship_messages(profile):
+    system_prompt = (
+        "You are an internship advisor. Respond ONLY with valid JSON, no extra text. "
+        'JSON schema: {"internships": [{"title": str, "field": str, "why_fit": str}]}. '
+        "Suggest exactly 5 internship types. Do not include emojis."
+    )
+    user_prompt = (
+        f"Subjects: {list_to_csv(profile.get('subjects', []))}\n"
+        f"Skills: {list_to_csv(profile.get('skills', []))}\n"
+        f"Career Goal: {profile.get('career_goal') or 'Not specified'}"
+    )
+    return [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}]
+
+def render_internships_page():
+    profile = st.session_state.profile
+    if st.button("Suggest Internships"):
+        with st.spinner("Finding internships suited to you..."):
+            messages = build_internship_messages(profile)
+            parsed, raw = call_groq_json(messages)
+        if parsed and parsed.get("internships"):
+            st.session_state.prep_data["internships"] = parsed["internships"]
+            st.success("Internship suggestions ready.")
+        else:
+            st.error("Could not generate suggestions right now.")
+        st.rerun()
+
+    st.write("")
+    internships = st.session_state.prep_data.get("internships", [])
+    if internships:
+        for i in internships:
+            st.markdown(f"""
+            <div class="lcs-card">
+                <b>{i['title']}</b> <span class="lcs-badge-purple">{i.get('field','')}</span><br>
+                <span style="color:#6b7280; font-size:13px;">{i.get('why_fit','')}</span>
+            </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.markdown('<p class="lcs-empty-state">Click Suggest Internships to get personalized options.</p>', unsafe_allow_html=True)
+
+# ============================================================
+# INTERVIEW PAGE
+# ============================================================
+def build_interview_question_messages(profile, history):
+    system_prompt = (
+        "You are conducting a mock interview. Respond ONLY with valid JSON, no extra text. "
+        'JSON schema: {"question": str}. Ask exactly one relevant interview question, '
+        "considering the candidate's career goal and prior answers. Do not include emojis."
+    )
+    prior = "\n".join([f"Q: {h['question']}\nA: {h['answer']}" for h in history[-3:]])
+    user_prompt = f"Career Goal: {profile.get('career_goal') or 'General'}\nPrior Q&A:\n{prior or 'None yet'}"
+    return [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}]
+
+def build_interview_feedback_messages(question, answer):
+    system_prompt = (
+        "You are an interview coach. Respond ONLY with valid JSON, no extra text. "
+        'JSON schema: {"feedback": str, "score": int (1-10)}. Give brief, constructive feedback. '
+        "Do not include emojis."
+    )
+    user_prompt = f"Question: {question}\nCandidate Answer: {answer}"
+    return [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}]
+
+def render_interview_page():
+    profile = st.session_state.profile
+    prep = st.session_state.prep_data
+
+    if st.button("Start New Mock Interview"):
+        with st.spinner("Preparing your first question..."):
+            messages = build_interview_question_messages(profile, prep["interview_history"])
+            parsed, raw = call_groq_json(messages)
+        prep["interview_active_question"] = parsed.get("question") if parsed else raw
+        st.rerun()
+
+    active_q = prep.get("interview_active_question")
+    if active_q:
+        st.markdown(f'<div class="lcs-card"><b>Interviewer:</b> {active_q}</div>', unsafe_allow_html=True)
+        answer = st.text_area("Your Answer", height=120, key="interview_answer_input")
+        if st.button("Submit Answer"):
+            if not answer.strip():
+                st.error("Please type your answer first.")
+            else:
+                with st.spinner("Evaluating your answer..."):
+                    fb_messages = build_interview_feedback_messages(active_q, answer)
+                    fb_parsed, fb_raw = call_groq_json(fb_messages)
+                feedback = fb_parsed.get("feedback") if fb_parsed else fb_raw
+                score = fb_parsed.get("score", 0) if fb_parsed else 0
+                prep["interview_history"].append({
+                    "question": active_q, "answer": answer.strip(), "feedback": feedback, "score": score,
+                })
+                with st.spinner("Preparing your next question..."):
+                    nq_messages = build_interview_question_messages(profile, prep["interview_history"])
+                    nq_parsed, nq_raw = call_groq_json(nq_messages)
+                prep["interview_active_question"] = nq_parsed.get("question") if nq_parsed else nq_raw
+                st.rerun()
+    else:
+        st.markdown('<p class="lcs-empty-state">Click Start New Mock Interview to begin.</p>', unsafe_allow_html=True)
+
+    st.write("")
+    st.markdown("#### Interview History")
+    history = prep.get("interview_history", [])
+    if history:
+        for h in reversed(history):
+            with st.expander(f"Q: {h['question'][:70]}..." if len(h['question']) > 70 else f"Q: {h['question']}"):
+                st.write(f"**Your answer:** {h['answer']}")
+                st.write(f"**Feedback:** {h['feedback']}")
+                st.write(f"**Score:** {h['score']}/10")
+    else:
+        st.markdown('<p class="lcs-empty-state">No interview attempts yet.</p>', unsafe_allow_html=True)
+
+# ============================================================
+# READINESS PAGE
+# ============================================================
+def render_readiness_page():
+    readiness = compute_career_readiness()
+
+    fig = go.Figure(go.Indicator(
+        mode="gauge+number",
+        value=readiness,
+        gauge={"axis": {"range": [0, 100]},
+               "bar": {"color": COLORS["purple"]},
+               "steps": [
+                   {"range": [0, 40], "color": "#FCEAF3"},
+                   {"range": [40, 70], "color": "#F4F1FA"},
+                   {"range": [70, 100], "color": "#E6F9F3"},
+               ]},
+        title={"text": "Career Readiness"}
+    ))
+    fig.update_layout(height=300, margin=dict(l=20, r=20, t=40, b=10))
+    st.plotly_chart(fig, use_container_width=True)
+
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Learning Progress", f"{compute_learning_progress()}%")
+    c2.metric("Skill Strength", f"{compute_skill_strength()}%")
+    c3.metric("CV Analyzed", "Yes" if st.session_state.prep_data.get("cv_analysis") else "No")
+    c4.metric("Interview Practiced", "Yes" if st.session_state.prep_data.get("interview_history") else "No")
+
+    st.write("")
+    st.markdown("#### Tips to Improve")
+    tips = []
+    if compute_learning_progress() < 60:
+        tips.append("Keep marking study topics as Strong by revising and taking quizzes.")
+    if compute_skill_strength() < 60:
+        tips.append("Add more skills to your profile as you learn them.")
+    if not st.session_state.prep_data.get("cv_analysis"):
+        tips.append("Run your CV through the CV Analyzer for instant feedback.")
+    if not st.session_state.prep_data.get("interview_history"):
+        tips.append("Practice at least one mock interview to build confidence.")
+    if not tips:
+        tips.append("You are in great shape keep building projects and certifications!")
+    for t in tips:
+        st.markdown(f"• {t}")
+
+# ============================================================
+# NEXT ACTION PAGE
+# ============================================================
+def render_next_action_page():
+    nba = get_next_best_action()
+    st.markdown(f"""
+    <div class="lcs-nba-card">
+        <p class="lcs-section-label" style="color:{COLORS['navy']} !important;">TOP PRIORITY</p>
+        <h3 style="margin-top:4px;">{nba['title']}</h3>
+        <p style="color:{COLORS['navy']};">{nba['reason']}</p>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button(nba["action_label"], key="next_action_top_btn"):
+        go_to_page(nba["action_page"])
+
+    st.write("")
+    st.markdown("#### More Suggested Actions")
+    for i, action in enumerate(get_ranked_actions()):
+        c1, c2 = st.columns([5, 1])
+        with c1:
+            st.markdown(f"""
+            <div class="lcs-card">
+                <b>{action['title']}</b><br>
+                <span style="color:#6b7280; font-size:13px;">{action['reason']}</span>
+            </div>
+            """, unsafe_allow_html=True)
+        with c2:
+            if st.button(action["action_label"], key=f"ranked_action_{i}"):
+                go_to_page(action["action_page"])
+
+# ============================================================
+# LIVE AGENT PAGE (full page version)
+# ============================================================
+def render_live_agent_page():
+    c1, c2 = st.columns([3, 1])
+    with c2:
+        lang = st.selectbox("Language", options=["English", "Urdu", "Hindi"],
+                             index=["English", "Urdu", "Hindi"].index(st.session_state.agent_context.get("language", "English"))
+                             if st.session_state.agent_context.get("language", "English") in ["English", "Urdu", "Hindi"] else 0)
+        st.session_state.agent_context["language"] = lang
+    with c1:
+        st.caption("This is the same agent that follows you on every page via the right side panel expanded here for longer conversations.")
+
+    with st.container(key="chat_panel_page"):
+        render_chat_panel(key_prefix="full_page", message_height=480)
+
+# ============================================================
+# PAGE ROUTER
+# ============================================================
+PAGE_RENDERERS = {
+    "Dashboard": render_dashboard,
+    "My Profile": render_profile_page,
+    "Study": render_study_page,
+    "Roadmap": render_roadmap_page,
+    "Planner": render_planner_page,
+    "Subjects": render_subjects_page,
+    "Notes": render_notes_page,
+    "Quizzes": render_quizzes_page,
+    "Mock Exams": render_mock_exams_page,
+    "Progress": render_progress_page,
+    "Discover": render_discover_page,
+    "Skills": render_skills_page,
+    "Skill Gap": render_skill_gap_page,
+    "Career Roadmap": render_career_roadmap_page,
+    "Projects": render_projects_page,
+    "Certifications": render_certifications_page,
+    "CV Analyzer": render_cv_analyzer_page,
+    "Job Matcher": render_job_matcher_page,
+    "Internships": render_internships_page,
+    "Interview": render_interview_page,
+    "Readiness": render_readiness_page,
+    "Next Action": render_next_action_page,
+    "Live Agent": render_live_agent_page,
+}
+
+def render_page(page_name):
+    if page_name != "Dashboard":
+        render_page_banner(page_name)
+    renderer = PAGE_RENDERERS.get(page_name)
+    if renderer:
+        renderer()
+    else:
+        st.markdown(f'<span class="lcs-badge">{page_name}</span>', unsafe_allow_html=True)
+        st.write("")
+        st.markdown(
+            f'<div class="lcs-card">The <b>{page_name}</b> module will be built in an upcoming development step.</div>',
+            unsafe_allow_html=True
+        )
+
+# ============================================================
+# MAIN APP
+# ============================================================
+def main():
+    apply_theme()
+    init_session_state()
+    render_top_header()
+    render_sidebar()
+
+    client_status = get_groq_client()
+    if client_status is None:
+        st.warning("Service features are not yet active. Groq API key not detected in this session.")
+
+    main_col, chat_col = st.columns([2.6, 1.4], gap="large")
+
+    with main_col:
+        render_page(st.session_state.current_page)
+
+    with chat_col:
+        with st.container(key="chat_panel"):
+            render_chat_panel(key_prefix="global", message_height=420)
+
+    render_footer()
+
+if __name__ == "__main__":
+    main()
