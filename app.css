@@ -1,0 +1,37 @@
+/* Sidebar dark theme & background */
+[data-testid="stSidebar"] {
+    background-color: #1e293b !important;
+}
+
+/* Sidebar menu buttons styling */
+[data-testid="stSidebar"] .stButton > button {
+    width: 100%;
+    padding: 6px 10px !important; /* Compact button size */
+    background-color: transparent !important;
+    color: #94a3b8 !important;
+    border: 1px solid #334155 !important;
+    border-radius: 6px !important;
+    font-size: 0.88rem !important;
+    text-align: left !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Hover effect */
+[data-testid="stSidebar"] .stButton > button:hover {
+    background-color: #334155 !important;
+    color: #ffffff !important;
+    border-color: #38bdf8 !important;
+}
+
+/* Live Agent Button - specific styling */
+div.element-container:has(#live-agent-marker) + div .stButton > button {
+    background-color: #0f766e !important; /* Teal Color */
+    color: #ffffff !important;
+    font-weight: bold !important;
+    border: none !important;
+    padding: 8px 10px !important;
+}
+
+div.element-container:has(#live-agent-marker) + div .stButton > button:hover {
+    background-color: #0d9488 !important;
+}
