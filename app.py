@@ -4,6 +4,41 @@ Student Learning & Career Platform
 """
 
 import streamlit as st
+import streamlit as st
+
+# 1. CSS load karne ke liye yeh line add karein
+def local_css(file_name):
+    with open(file_name) as f:
+        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+local_css('style.css')
+
+
+# 2. Aapka Sidebar Block
+with st.sidebar:
+    st.markdown("""
+    <div class="lcs-brand">
+        <div class="lcs-brand-badge">LCS</div>
+        <div>
+            <p class="lcs-brand-title">LCS</p>
+            <p class="lcs-brand-sub">Learning &amp; Career Studio</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Buttons
+    st.button("🏠 Dashboard")
+    st.button("📊 Analytics")
+    st.button("📁 Projects")
+    st.button("👥 Team")
+    st.button("⚙️ Settings")
+
+    st.markdown("---")
+
+    # Live Agent Button Marker
+    st.markdown('<div id="live-agent-marker"></div>', unsafe_allow_html=True)
+    if st.button("🎧 Live Agent"):
+        st.write("Live Agent Connected!")
 import pandas as pd
 import plotly.graph_objects as go
 import json
