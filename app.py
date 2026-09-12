@@ -2156,9 +2156,9 @@ def render_next_action_page():
 def render_live_agent_page():
     c1, c2 = st.columns([3, 1])
     with c2:
-        lang = st.selectbox("Language", options=["English", "Urdu", "Hindi"],
-                             index=["English", "Urdu", "Hindi"].index(st.session_state.agent_context.get("language", "English"))
-                             if st.session_state.agent_context.get("language", "English") in ["English", "Urdu", "Hindi"] else 0)
+        lang = st.selectbox("Language", options=["English", "Urdu"],
+                             index=["English", "Urdu"].index(st.session_state.agent_context.get("language", "English"))
+                             if st.session_state.agent_context.get("language", "English") in ["English", "Urdu"] else 0)
         st.session_state.agent_context["language"] = lang
     with c1:
         st.caption("This is the same agent that follows you on every page via the right side panel expanded here for longer conversations.")
