@@ -1,6 +1,6 @@
 """
 Learning & Career Studio (LCS)
-Student Learning & Career Platform
+Intelligent Student Learning & Career Platform
 """
 
 import streamlit as st
@@ -18,6 +18,7 @@ from groq import Groq
 # ============================================================
 st.set_page_config(
     page_title="Learning & Career Studio",
+    page_icon="🎓",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -49,11 +50,11 @@ COLORS = {
 
 # Category -> accent color, used for sidebar nav coloring + page headers
 GROUP_COLORS = {
-    "MAIN": "#6C63FF",          # Vibrant Purple
-    "LEARNING": "#00B894",      # Deep Teal
-    "CAREER": "#E84393",        # Vibrant Pink/Rose
-    "PREPARATION": "#E67E22",   # Vivid Orange/Amber
-    "INTELLIGENCE": "#00CEC9",  # Bright Cyan
+    "MAIN": COLORS["purple"],
+    "LEARNING": COLORS["teal"],
+    "CAREER": COLORS["rose_dark"],
+    "PREPARATION": COLORS["amber_dark"],
+    "INTELLIGENCE": COLORS["cyan_dark"],
 }
 
 # ============================================================
@@ -68,36 +69,36 @@ NAV_STRUCTURE = {
 }
 
 PAGE_META = {
-    "Dashboard": {"subtitle": "Your learning and career journey at a glance.", "group": "MAIN"},
-    "My Profile": {"subtitle": "This information powers personalization across LCS.", "group": "MAIN"},
-    "Study": {"subtitle": "Structured explanations for any topic, on demand.", "group": "LEARNING"},
-    "Roadmap": {"subtitle": "Your personalized, milestone based study roadmap.", "group": "LEARNING"},
-    "Planner": {"subtitle": "Plan, schedule and track your study tasks.", "group": "LEARNING"},
-    "Subjects": {"subtitle": "Manage the subjects you are currently studying.", "group": "LEARNING"},
-    "Notes": {"subtitle": "Keep organized notes for every subject and topic.", "group": "LEARNING"},
-    "Quizzes": {"subtitle": "Test your knowledge with generated quizzes.", "group": "LEARNING"},
-    "Mock Exams": {"subtitle": "Simulate a full, multi topic exam experience.", "group": "LEARNING"},
-    "Progress": {"subtitle": "Track how your learning is progressing over time.", "group": "LEARNING"},
-    "Discover": {"subtitle": "Discover careers that match your profile.", "group": "CAREER"},
-    "Skills": {"subtitle": "Manage the skills you are building.", "group": "CAREER"},
-    "Skill Gap": {"subtitle": "Identify what is missing for your target career.", "group": "CAREER"},
-    "Career Roadmap": {"subtitle": "Your personalized path toward your career goal.", "group": "CAREER"},
-    "Projects": {"subtitle": "Track portfolio projects that showcase your skills.", "group": "CAREER"},
-    "Certifications": {"subtitle": "Track certifications you hold or plan to earn.", "group": "CAREER"},
-    "CV Analyzer": {"subtitle": "Get instant feedback on your CV.", "group": "PREPARATION"},
-    "Job Matcher": {"subtitle": "See how well you match a job description.", "group": "PREPARATION"},
-    "Internships": {"subtitle": "Discover internships suited to your profile.", "group": "PREPARATION"},
-    "Interview": {"subtitle": "Practice live with a mock interviewer.", "group": "PREPARATION"},
-    "Readiness": {"subtitle": "See exactly how career ready you are right now.", "group": "PREPARATION"},
-    "Next Action": {"subtitle": "Your smartest next move, decided by LCS.", "group": "INTELLIGENCE"},
-    "Live Agent": {"subtitle": "Chat live with your personal LCS agent.", "group": "INTELLIGENCE"},
+    "Dashboard": {"icon": "🏠", "subtitle": "Your learning and career journey at a glance.", "group": "MAIN"},
+    "My Profile": {"icon": "🧑‍🎓", "subtitle": "This information powers personalization across LCS.", "group": "MAIN"},
+    "Study": {"icon": "📘", "subtitle": "Structured explanations for any topic, on demand.", "group": "LEARNING"},
+    "Roadmap": {"icon": "🗺️", "subtitle": "Your personalized, milestone-based study roadmap.", "group": "LEARNING"},
+    "Planner": {"icon": "🗓️", "subtitle": "Plan, schedule and track your study tasks.", "group": "LEARNING"},
+    "Subjects": {"icon": "📚", "subtitle": "Manage the subjects you are currently studying.", "group": "LEARNING"},
+    "Notes": {"icon": "📝", "subtitle": "Keep organized notes for every subject and topic.", "group": "LEARNING"},
+    "Quizzes": {"icon": "❓", "subtitle": "Test your knowledge with AI-generated quizzes.", "group": "LEARNING"},
+    "Mock Exams": {"icon": "🧪", "subtitle": "Simulate a full, multi-topic exam experience.", "group": "LEARNING"},
+    "Progress": {"icon": "📈", "subtitle": "Track how your learning is progressing over time.", "group": "LEARNING"},
+    "Discover": {"icon": "🧭", "subtitle": "Discover careers that match your profile.", "group": "CAREER"},
+    "Skills": {"icon": "🛠️", "subtitle": "Manage the skills you are building.", "group": "CAREER"},
+    "Skill Gap": {"icon": "🔍", "subtitle": "Identify what's missing for your target career.", "group": "CAREER"},
+    "Career Roadmap": {"icon": "🚀", "subtitle": "Your personalized path toward your career goal.", "group": "CAREER"},
+    "Projects": {"icon": "💼", "subtitle": "Track portfolio projects that showcase your skills.", "group": "CAREER"},
+    "Certifications": {"icon": "🎖️", "subtitle": "Track certifications you hold or plan to earn.", "group": "CAREER"},
+    "CV Analyzer": {"icon": "📄", "subtitle": "Get instant AI feedback on your CV.", "group": "PREPARATION"},
+    "Job Matcher": {"icon": "🎯", "subtitle": "See how well you match a job description.", "group": "PREPARATION"},
+    "Internships": {"icon": "🏢", "subtitle": "Discover internships suited to your profile.", "group": "PREPARATION"},
+    "Interview": {"icon": "🎤", "subtitle": "Practice live with an AI mock interviewer.", "group": "PREPARATION"},
+    "Readiness": {"icon": "✅", "subtitle": "See exactly how career-ready you are right now.", "group": "PREPARATION"},
+    "Next Action": {"icon": "⚡", "subtitle": "Your smartest next move, decided by LCS.", "group": "INTELLIGENCE"},
+    "Live Agent": {"icon": "💬", "subtitle": "Chat live with your personal LCS AI agent.", "group": "INTELLIGENCE"},
 }
 
 # ============================================================
 # GLOBAL THEME / CSS
 # ============================================================
 def build_nav_color_css():
-    """Generates per section coloring for sidebar nav buttons based on NAV_STRUCTURE order."""
+    """Generates per-section coloring for the sidebar nav buttons based on NAV_STRUCTURE order."""
     rules = []
     idx = 1
     for group, items in NAV_STRUCTURE.items():
@@ -105,21 +106,17 @@ def build_nav_color_css():
         color = GROUP_COLORS[group]
         rules.append(f"""
         section[data-testid="stSidebar"] div[data-testid="stButton"]:nth-of-type(n+{start}):nth-of-type(-n+{end}) > button {{
-            border-left: 5px solid {color} !important;
-            background-color: rgba(255,255,255,0.06) !important;
-            color: #FFFFFF !important;
-            font-weight: 600 !important;
+            border-left: 4px solid {color} !important;
+            color: #EAF0FF !important;
         }}
         section[data-testid="stSidebar"] div[data-testid="stButton"]:nth-of-type(n+{start}):nth-of-type(-n+{end}) > button:hover {{
-            background: linear-gradient(90deg, {color}44 0%, transparent 100%) !important;
-            border-left: 5px solid {color} !important;
-            color: #FFFFFF !important;
+            background: linear-gradient(90deg, {color}55 0%, transparent 100%) !important;
+            border-left: 4px solid {color} !important;
         }}
         section[data-testid="stSidebar"] div[data-testid="stButton"]:nth-of-type(n+{start}):nth-of-type(-n+{end}) > button[kind="primary"] {{
             background: linear-gradient(90deg, {color} 0%, {color}CC 100%) !important;
-            border-left: 5px solid #FFFFFF !important;
+            border-left: 4px solid #FFFFFF !important;
             color: #FFFFFF !important;
-            font-weight: 700 !important;
             box-shadow: 0 3px 10px {color}66;
         }}
         """)
@@ -180,9 +177,7 @@ def apply_theme():
             border-radius: 10px;
             background: linear-gradient(135deg, var(--purple) 0%, var(--cyan) 100%);
             display: flex; align-items: center; justify-content: center;
-            font-size: 16px;
-            font-weight: 800;
-            color: #ffffff;
+            font-size: 20px;
             box-shadow: 0 4px 14px rgba(108,99,255,0.45);
         }}
         .lcs-brand-title {{
@@ -199,24 +194,35 @@ def apply_theme():
         }}
 
         .lcs-section-label {{
-            color: #A0AEC0 !important;
-            font-size: 11px;
-            letter-spacing: 1.5px;
-            font-weight: 800;
+            color: #7C8DBF !important;
+            font-size: 10.5px;
+            letter-spacing: 1.4px;
+            font-weight: 700;
             margin-top: 18px;
             margin-bottom: 6px;
             padding-left: 4px;
-            text-transform: uppercase;
         }}
 
         section[data-testid="stSidebar"] .stButton > button {{
-            border-radius: 8px;
-            margin-bottom: 5px;
-            font-size: 14px;
-            padding: 9px 14px;
+            background-color: rgba(255,255,255,0.08);
+            border: none;
+            border-radius: 10px;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 15px;
+            line-height: 1.4;
+            padding: 12px 16px;
+            min-height: 44px;
             width: 100%;
             text-align: left;
+            white-space: normal;
+            word-break: break-word;
             transition: all 0.15s ease-in-out;
+        }}
+        section[data-testid="stSidebar"] .stButton > button p {{
+            font-size: 15px !important;
+            line-height: 1.4 !important;
+            white-space: normal !important;
         }}
         {nav_css}
 
@@ -232,35 +238,40 @@ def apply_theme():
 
         /* ---------- TOP HEADER ---------- */
         .lcs-header {{
-            background: linear-gradient(90deg, var(--navy) 0%, var(--purple-dark) 55%, var(--cyan) 100%);
-            padding: 22px 32px;
+            background: var(--soft-white);
+            border: 1px solid rgba(24,43,73,0.08);
+            padding: 20px 28px;
             border-radius: 16px;
             margin-bottom: 22px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            box-shadow: 0 8px 24px rgba(24,43,73,0.18);
+            box-shadow: 0 2px 10px rgba(24,43,73,0.06);
             position: relative;
-            overflow: hidden;
-        }}
-        .lcs-header::after {{
-            content: "";
-            position: absolute; inset: 0;
-            background: radial-gradient(circle at 90% -20%, rgba(255,255,255,0.18), transparent 60%);
         }}
         .lcs-header-title {{
             font-family: 'Poppins', sans-serif;
-            color: var(--soft-white);
-            font-size: 30px;
+            color: var(--navy);
+            font-size: 28px;
             font-weight: 800;
             margin: 0;
             letter-spacing: 0.3px;
         }}
         .lcs-header-subtitle {{
-            color: #E4D9F7;
+            color: #5B6478;
             font-size: 13.5px;
             margin: 4px 0 0 0;
             font-weight: 500;
+        }}
+        .lcs-header-chip {{
+            background: rgba(108,99,255,0.10);
+            border: 1px solid rgba(108,99,255,0.25);
+            color: var(--purple-dark);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
         }}
 
         /* ---------- HERO (Dashboard only) ---------- */
@@ -308,6 +319,14 @@ def apply_theme():
             display: flex;
             align-items: center;
             gap: 14px;
+        }}
+        .lcs-page-banner-icon {{
+            font-size: 26px;
+            width: 46px; height: 46px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.55);
+            flex-shrink: 0;
         }}
         .lcs-page-banner-title {{
             font-family: 'Poppins', sans-serif;
@@ -451,10 +470,8 @@ def apply_theme():
         div[class*="st-key-chat_panel"], div[class*="st-key-chat_panel_page"] {{
             background: linear-gradient(165deg, var(--navy) 0%, var(--purple-dark) 55%, var(--cyan-dark, #1C8FBF) 100%);
             border-radius: 20px;
-            padding: 18px 16px 14px 16px;
+            padding: 16px 14px 10px 14px;
             box-shadow: 0 10px 28px rgba(24,43,73,0.28);
-            width: 100%;
-            min-height: 520px;
         }}
         .lcs-chat-header {{
             display: flex;
@@ -467,7 +484,7 @@ def apply_theme():
         .lcs-chat-title {{
             color: #fff;
             font-weight: 700;
-            font-size: 15px;
+            font-size: 14.5px;
             margin: 0;
         }}
         .lcs-chat-status {{
@@ -510,9 +527,10 @@ def render_top_header():
     st.markdown(f"""
     <div class="lcs-header">
         <div>
-            <p class="lcs-header-title">Learning &amp; Career Studio</p>
+            <p class="lcs-header-title">🎓 Learning &amp; Career Studio</p>
             <p class="lcs-header-subtitle">Intelligent Student Learning &amp; Career Platform</p>
         </div>
+        <div class="lcs-header-chip">✨ AI-Powered</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -523,18 +541,19 @@ def render_hero_banner():
     display_name = profile.get("name") or "Student"
     st.markdown(f"""
     <div class="lcs-hero">
-        <p class="lcs-hero-app-name">Learning &amp; Career Studio</p>
+        <p class="lcs-hero-app-name">🎓 Learning &amp; Career Studio</p>
         <p class="lcs-hero-tagline">One intelligent platform for your learning journey and career growth.</p>
-        <p class="lcs-hero-welcome">Welcome back, {display_name} here is where you stand today.</p>
+        <p class="lcs-hero-welcome">👋 Welcome back, {display_name} — here's where you stand today.</p>
     </div>
     """, unsafe_allow_html=True)
 
 
 def render_page_banner(page_name):
-    meta = PAGE_META.get(page_name, {"subtitle": "", "group": "MAIN"})
+    meta = PAGE_META.get(page_name, {"icon": "📄", "subtitle": "", "group": "MAIN"})
     color = GROUP_COLORS.get(meta["group"], COLORS["purple"])
     st.markdown(f"""
     <div class="lcs-page-banner" style="background: linear-gradient(90deg, {color}22 0%, {color}08 100%); border: 1px solid {color}44;">
+        <div class="lcs-page-banner-icon" style="color:{color};">{meta['icon']}</div>
         <div>
             <p class="lcs-page-banner-title" style="color:{color};">{page_name}</p>
             <p class="lcs-page-banner-subtitle" style="color:{COLORS['navy']};">{meta['subtitle']}</p>
@@ -546,8 +565,8 @@ def render_page_banner(page_name):
 def render_footer():
     st.markdown(f"""
     <div class="lcs-footer">
-        © {datetime.now().year} <b>Learning &amp; Career Studio (LCS)</b>. Designed and developed by Areeba Imran. All rights reserved.<br>
-        Built for students, by design Study smarter, plan sharper, grow faster.
+        © {datetime.now().year} <b>Learning &amp; Career Studio (LCS)</b>. All rights reserved.<br>
+        Built for students, by design — Study smarter, plan sharper, grow faster.
     </div>
     """, unsafe_allow_html=True)
 
@@ -570,7 +589,7 @@ def get_groq_client():
 def call_groq(messages, temperature=0.4, max_tokens=1024):
     client = get_groq_client()
     if client is None:
-        return "Service is currently unavailable. Please configure the Groq API key in this environment."
+        return "AI service is currently unavailable. Please configure the Groq API key in this environment."
     try:
         response = client.chat.completions.create(
             model=GROQ_MODEL,
@@ -580,7 +599,7 @@ def call_groq(messages, temperature=0.4, max_tokens=1024):
         )
         return response.choices[0].message.content
     except Exception:
-        return "The service could not process this request right now. Please try again in a moment."
+        return "The AI service could not process this request right now. Please try again in a moment."
 
 def call_groq_json(messages, temperature=0.3, max_tokens=1200):
     """
@@ -654,7 +673,7 @@ def render_sidebar():
     with st.sidebar:
         st.markdown("""
         <div class="lcs-brand">
-            <div class="lcs-brand-badge">LCS</div>
+            <div class="lcs-brand-badge">🎓</div>
             <div>
                 <p class="lcs-brand-title">LCS</p>
                 <p class="lcs-brand-sub">Learning &amp; Career Studio</p>
@@ -668,15 +687,15 @@ def render_sidebar():
                 st.markdown(f'<p class="lcs-section-label">{group_name}</p>', unsafe_allow_html=True)
             for item in items:
                 is_active = st.session_state.current_page == item
-                if st.button(f"{item}", key=f"nav_{item}", use_container_width=True,
+                icon = PAGE_META.get(item, {}).get("icon", "•")
+                if st.button(f"{icon}  {item}", key=f"nav_{item}", use_container_width=True,
                              type="primary" if is_active else "secondary"):
                     st.session_state.current_page = item
                     st.rerun()
 
         st.markdown(f"""
         <div class="lcs-sidebar-footer">
-            Live Agent is on every page<br>
-            Designed and developed by Areeba Imran<br>
+            💬 Live Agent is on every page →<br>
             © {datetime.now().year} LCS. All rights reserved.
         </div>
         """, unsafe_allow_html=True)
@@ -762,7 +781,7 @@ def get_next_best_action():
     if weak:
         topic = weak[0]
         return {"title": f"Strengthen {topic}",
-                "reason": f"Your recent quiz performance shows that {topic} related questions need more practice.",
+                "reason": f"Your recent quiz performance shows that {topic}-related questions need more practice.",
                 "action_label": "Practice Now", "action_page": "Quizzes"}
     if not st.session_state.career_data.get("matches"):
         return {"title": "Explore Career Matches",
@@ -778,30 +797,30 @@ def get_ranked_actions():
     actions = []
     if not profile.get("name"):
         actions.append({"title": "Complete Your Profile", "reason": "Unlocks personalization across LCS.",
-                         "action_label": "Complete Profile", "action_page": "My Profile"})
+                         "action_label": "Complete Profile", "action_page": "My Profile", "icon": "🧑‍🎓"})
     if not profile.get("subjects"):
         actions.append({"title": "Add Your Subjects", "reason": "Powers your Study Workspace and Roadmap.",
-                         "action_label": "Add Subjects", "action_page": "Subjects"})
+                         "action_label": "Add Subjects", "action_page": "Subjects", "icon": "📚"})
     weak = st.session_state.study_data.get("weak_topics", [])
     if weak:
         actions.append({"title": f"Strengthen {weak[0]}", "reason": "Recent quiz results show this needs practice.",
-                         "action_label": "Practice Now", "action_page": "Quizzes"})
+                         "action_label": "Practice Now", "action_page": "Quizzes", "icon": "❓"})
     if not st.session_state.career_data.get("matches"):
         actions.append({"title": "Explore Career Matches", "reason": "See careers aligned with your profile.",
-                         "action_label": "Discover Careers", "action_page": "Discover"})
+                         "action_label": "Discover Careers", "action_page": "Discover", "icon": "🧭"})
     if not st.session_state.prep_data.get("cv_analysis"):
-        actions.append({"title": "Analyze Your CV", "reason": "Get instant feedback to improve it.",
-                         "action_label": "Analyze CV", "action_page": "CV Analyzer"})
+        actions.append({"title": "Analyze Your CV", "reason": "Get instant AI feedback to improve it.",
+                         "action_label": "Analyze CV", "action_page": "CV Analyzer", "icon": "📄"})
     if not st.session_state.prep_data.get("interview_history"):
         actions.append({"title": "Practice a Mock Interview", "reason": "Build confidence before real interviews.",
-                         "action_label": "Start Interview", "action_page": "Interview"})
+                         "action_label": "Start Interview", "action_page": "Interview", "icon": "🎤"})
     if not actions:
         actions.append({"title": "Keep Building Your Portfolio", "reason": "Add a new project or certification this week.",
-                         "action_label": "Go to Projects", "action_page": "Projects"})
+                         "action_label": "Go to Projects", "action_page": "Projects", "icon": "💼"})
     return actions[:4]
 
 # ============================================================
-# LIVE AGENT (chat, shown on every page)
+# LIVE AI AGENT (chat, shown on every page)
 # ============================================================
 def build_agent_system_prompt():
     profile = st.session_state.profile
@@ -817,7 +836,7 @@ def build_agent_system_prompt():
     return (
         "You are the LCS Agent, a friendly, encouraging live assistant embedded inside the "
         "Learning & Career Studio platform. You help students with study questions, career "
-        "guidance, and navigating the app. Keep answers concise (2 to 5 sentences unless asked for "
+        "guidance, and navigating the app. Keep answers concise (2-5 sentences unless asked for "
         "detail), practical, and supportive. Here is what you know about the current student:\n"
         + "\n".join(context_bits)
     )
@@ -830,12 +849,12 @@ def agent_reply(user_text):
     messages.append({"role": "user", "content": user_text})
     return call_groq(messages, temperature=0.5, max_tokens=450)
 
-def render_chat_panel(key_prefix="global", message_height=420):
+def render_chat_panel(key_prefix="global", message_height=380):
     history = st.session_state.agent_context["history"]
 
     st.markdown("""
     <div class="lcs-chat-header">
-        <p class="lcs-chat-title">LCS Live Agent</p>
+        <p class="lcs-chat-title">💬 LCS Live Agent</p>
         <div class="lcs-chat-status"><span class="lcs-dot"></span>Online</div>
     </div>
     """, unsafe_allow_html=True)
@@ -844,7 +863,7 @@ def render_chat_panel(key_prefix="global", message_height=420):
     with msg_box:
         if not history:
             st.chat_message("assistant").write(
-                "Hi! I am your LCS Agent. Ask me about a topic, your career path, or how to use this app."
+                "Hi! I'm your LCS Agent 👋 Ask me about a topic, your career path, or how to use this app."
             )
         for m in history:
             st.chat_message(m["role"]).write(m["content"])
@@ -857,7 +876,7 @@ def render_chat_panel(key_prefix="global", message_height=420):
         history.append({"role": "assistant", "content": reply})
         st.rerun()
 
-    if history and st.button("Clear Chat", key=f"clear_chat_{key_prefix}", use_container_width=True):
+    if history and st.button("🗑️ Clear Chat", key=f"clear_chat_{key_prefix}", use_container_width=True):
         st.session_state.agent_context["history"] = []
         st.rerun()
 
@@ -895,7 +914,7 @@ def render_dashboard():
     col_left, col_right = st.columns(2)
 
     with col_left:
-        st.markdown("#### Study Progress")
+        st.markdown("#### 📘 Study Progress")
         topics = st.session_state.study_data["topics"]
         if topics:
             status_counts = {}
@@ -910,14 +929,14 @@ def render_dashboard():
         else:
             st.markdown('<p class="lcs-empty-state">No study topics yet. Add subjects to start your roadmap.</p>', unsafe_allow_html=True)
 
-        st.markdown("#### Weak Topics")
+        st.markdown("#### ⚠️ Weak Topics")
         weak = st.session_state.study_data.get("weak_topics", [])
         if weak:
             st.markdown("".join([f'<span class="lcs-badge">{w}</span>' for w in weak]), unsafe_allow_html=True)
         else:
             st.markdown('<p class="lcs-empty-state">No weak topics detected yet. Complete a quiz to see results here.</p>', unsafe_allow_html=True)
 
-        st.markdown("#### Recent Quiz Performance")
+        st.markdown("#### ❓ Recent Quiz Performance")
         quiz_history = st.session_state.study_data.get("quiz_history", [])
         if quiz_history:
             df = pd.DataFrame(quiz_history[-5:])
@@ -926,7 +945,7 @@ def render_dashboard():
             st.markdown('<p class="lcs-empty-state">No quizzes attempted yet.</p>', unsafe_allow_html=True)
 
     with col_right:
-        st.markdown("#### Career Matches")
+        st.markdown("#### 🧭 Career Matches")
         matches = st.session_state.career_data.get("matches", [])
         if matches:
             sorted_matches = sorted(matches, key=lambda m: m["match_pct"], reverse=True)[:5]
@@ -940,7 +959,7 @@ def render_dashboard():
         else:
             st.markdown('<p class="lcs-empty-state">No career matches yet. Visit Discover to explore careers.</p>', unsafe_allow_html=True)
 
-        st.markdown("#### Skill Gaps")
+        st.markdown("#### 🔍 Skill Gaps")
         gaps = st.session_state.career_data.get("skill_gaps", [])
         if gaps:
             for g in gaps[:3]:
@@ -949,7 +968,7 @@ def render_dashboard():
         else:
             st.markdown('<p class="lcs-empty-state">No skill gap analysis yet.</p>', unsafe_allow_html=True)
 
-        st.markdown("#### Study Roadmap")
+        st.markdown("#### 🗺️ Study Roadmap")
         roadmap = st.session_state.study_data.get("roadmap", [])
         if roadmap:
             df = pd.DataFrame(roadmap)
@@ -957,7 +976,7 @@ def render_dashboard():
         else:
             st.markdown('<p class="lcs-empty-state">Your personalized study roadmap will appear here.</p>', unsafe_allow_html=True)
 
-        st.markdown("#### Career Roadmap")
+        st.markdown("#### 🚀 Career Roadmap")
         career_roadmap = st.session_state.career_data.get("roadmap", [])
         if career_roadmap:
             df = pd.DataFrame(career_roadmap)
@@ -965,7 +984,7 @@ def render_dashboard():
         else:
             st.markdown('<p class="lcs-empty-state">Your career roadmap will appear here.</p>', unsafe_allow_html=True)
 
-    st.markdown("#### Upcoming Goals")
+    st.markdown("#### 🗓️ Upcoming Goals")
     planner = st.session_state.study_data.get("planner", [])
     pending = [p for p in planner if p.get("status") != "Done"]
     if pending:
@@ -1001,32 +1020,32 @@ def render_profile_page():
         st.markdown("#### Academics & Skills")
         c3, c4 = st.columns(2)
         with c3:
-            subjects = st.text_area("Subjects (comma separated)", value=list_to_csv(profile.get("subjects", [])), height=80)
-            skills = st.text_area("Skills (comma separated)", value=list_to_csv(profile.get("skills", [])), height=80)
+            subjects = st.text_area("Subjects (comma-separated)", value=list_to_csv(profile.get("subjects", [])), height=80)
+            skills = st.text_area("Skills (comma-separated)", value=list_to_csv(profile.get("skills", [])), height=80)
         with c4:
-            interests = st.text_area("Interests (comma separated)", value=list_to_csv(profile.get("interests", [])), height=80)
-            certifications = st.text_area("Certifications (comma separated)", value=list_to_csv(profile.get("certifications", [])), height=80)
+            interests = st.text_area("Interests (comma-separated)", value=list_to_csv(profile.get("interests", [])), height=80)
+            certifications = st.text_area("Certifications (comma-separated)", value=list_to_csv(profile.get("certifications", [])), height=80)
 
         st.markdown("#### Experience & Achievements")
         c5, c6 = st.columns(2)
         with c5:
-            projects = st.text_area("Projects (comma separated)", value=list_to_csv(profile.get("projects", [])), height=80)
+            projects = st.text_area("Projects (comma-separated)", value=list_to_csv(profile.get("projects", [])), height=80)
             experience = st.text_area("Experience (brief description)", value=profile.get("experience", ""), height=80)
         with c6:
-            achievements = st.text_area("Achievements (comma separated)", value=list_to_csv(profile.get("achievements", [])), height=80)
+            achievements = st.text_area("Achievements (comma-separated)", value=list_to_csv(profile.get("achievements", [])), height=80)
 
         st.markdown("#### Career Direction")
         c7, c8 = st.columns(2)
         with c7:
             career_goal = st.text_input("Career Goal", value=profile.get("career_goal", ""))
-            preferred_industries = st.text_area("Preferred Industries (comma separated)", value=list_to_csv(profile.get("preferred_industries", [])), height=80)
+            preferred_industries = st.text_area("Preferred Industries (comma-separated)", value=list_to_csv(profile.get("preferred_industries", [])), height=80)
         with c8:
             preferred_work_type = st.selectbox(
                 "Preferred Work Type", options=WORK_TYPES,
                 index=WORK_TYPES.index(profile["preferred_work_type"]) if profile.get("preferred_work_type") in WORK_TYPES else 0
             )
 
-        submitted = st.form_submit_button("Save Profile")
+        submitted = st.form_submit_button("💾 Save Profile")
 
         if submitted:
             st.session_state.profile = {
@@ -1055,8 +1074,8 @@ def render_profile_summary():
     st.markdown(f"""
     <div class="lcs-card">
         <b>{profile['name']}</b><br>
-        <span style="color:#6b7280;">{profile.get('education_level','')} {profile.get('institution','')}</span><br>
-        <span style="color:#6b7280;">{profile.get('program','')} {(profile.get('class_semester','')) if profile.get('class_semester') else ''}</span>
+        <span style="color:#6b7280;">{profile.get('education_level','')} — {profile.get('institution','')}</span><br>
+        <span style="color:#6b7280;">{profile.get('program','')} {(' · ' + profile.get('class_semester','')) if profile.get('class_semester') else ''}</span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -1089,7 +1108,7 @@ def build_topic_explanation_messages(subject, topic, education_level):
         "You are an academic tutor inside an educational platform called Learning and Career Studio. "
         "Respond ONLY with a valid JSON object, no extra text, no markdown fences. "
         "The JSON must have exactly these keys: "
-        '"explanation" (a clear, well structured explanation string, 3 to 6 sentences), '
+        '"explanation" (a clear, well-structured explanation string, 3 to 6 sentences), '
         '"key_concepts" (a list of 4 to 6 short strings), '
         '"examples" (a list of 2 to 4 short example strings). '
         "Keep the language appropriate for the given education level. Do not include emojis."
@@ -1133,7 +1152,7 @@ def render_study_page():
             key="study_education_level"
         )
 
-    generate_clicked = st.button("Generate Explanation", key="generate_explanation_btn")
+    generate_clicked = st.button("✨ Generate Explanation", key="generate_explanation_btn")
 
     if generate_clicked:
         if not subject or not topic:
@@ -1155,7 +1174,7 @@ def render_study_page():
 
     if workspace.get("content"):
         content = workspace["content"]
-        st.markdown(f'<span class="lcs-badge-teal">{workspace["subject"]} {workspace["topic"]}</span>', unsafe_allow_html=True)
+        st.markdown(f'<span class="lcs-badge-teal">{workspace["subject"]} · {workspace["topic"]}</span>', unsafe_allow_html=True)
         st.write("")
 
         tab1, tab2, tab3 = st.tabs(["Explanation", "Key Concepts", "Examples"])
@@ -1219,7 +1238,7 @@ def render_subjects_page():
         with c2:
             st.write("")
             st.write("")
-            add_clicked = st.form_submit_button("Add Subject")
+            add_clicked = st.form_submit_button("➕ Add Subject")
 
         if add_clicked:
             if not new_subject.strip():
@@ -1248,7 +1267,7 @@ def render_subjects_page():
             <div class="lcs-card">
                 <b>{subject}</b><br>
                 <span style="color:#6b7280; font-size:13px;">
-                    {len(subject_topics)} topic(s) tracked {strong_count} marked Strong
+                    {len(subject_topics)} topic(s) tracked · {strong_count} marked Strong
                 </span>
             </div>
             """, unsafe_allow_html=True)
@@ -1263,7 +1282,7 @@ def render_subjects_page():
 # ROADMAP PAGE
 # ============================================================
 def render_roadmap_page():
-    st.markdown("#### Auto Generated From Your Topics")
+    st.markdown("#### Auto-Generated From Your Topics")
     topics = st.session_state.study_data["topics"]
     if topics:
         rows = sorted(
@@ -1272,7 +1291,7 @@ def render_roadmap_page():
         )
         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
     else:
-        st.markdown('<p class="lcs-empty-state">Add subjects and study topics to auto populate your roadmap.</p>', unsafe_allow_html=True)
+        st.markdown('<p class="lcs-empty-state">Add subjects and study topics to auto-populate your roadmap.</p>', unsafe_allow_html=True)
 
     st.write("")
     st.markdown("#### Add a Milestone")
@@ -1284,7 +1303,7 @@ def render_roadmap_page():
             target_date = st.date_input("Target Date", value=datetime.now() + timedelta(days=14))
         with c3:
             status = st.selectbox("Status", options=["Planned", "In Progress", "Done"])
-        submitted = st.form_submit_button("Add Milestone")
+        submitted = st.form_submit_button("➕ Add Milestone")
         if submitted:
             if not milestone.strip():
                 st.error("Please enter a milestone description.")
@@ -1317,7 +1336,7 @@ def render_planner_page():
             due_date = st.date_input("Due Date", value=datetime.now() + timedelta(days=3))
         with c3:
             priority = st.selectbox("Priority", options=["Low", "Medium", "High"], index=1)
-        submitted = st.form_submit_button("Add Task")
+        submitted = st.form_submit_button("➕ Add Task")
         if submitted:
             if not task.strip():
                 st.error("Please enter a task description.")
@@ -1345,7 +1364,7 @@ def render_planner_page():
             st.markdown(f"""
             <div class="lcs-card">
                 <b>{t['Task']}</b><br>
-                <span style="color:#6b7280; font-size:13px;">Due {t['Due Date']} Priority: {t['Priority']}</span>
+                <span style="color:#6b7280; font-size:13px;">Due {t['Due Date']} · Priority: {t['Priority']}</span>
                 <span class="{badge_class}">{t['status']}</span>
             </div>
             """, unsafe_allow_html=True)
@@ -1372,7 +1391,7 @@ def render_notes_page():
         with c2:
             title = st.text_input("Note Title", placeholder="e.g. Normalization Rules")
         body = st.text_area("Note Content", height=120, placeholder="Write your notes here...")
-        submitted = st.form_submit_button("Save Note")
+        submitted = st.form_submit_button("💾 Save Note")
         if submitted:
             if not title.strip() or not body.strip():
                 st.error("Please provide both a title and note content.")
@@ -1393,7 +1412,7 @@ def render_notes_page():
     for subject, note_list in notes.items():
         st.markdown(f"**{subject}**")
         for i, n in enumerate(note_list):
-            with st.expander(f"{n['title']} {n['date']}"):
+            with st.expander(f"{n['title']} — {n['date']}"):
                 st.write(n["body"])
                 if st.button("Delete Note", key=f"del_note_{subject}_{i}"):
                     notes[subject].pop(i)
@@ -1426,7 +1445,7 @@ def render_quizzes_page():
     with c3:
         difficulty = st.selectbox("Difficulty", options=["Easy", "Medium", "Hard"], key="quiz_difficulty")
 
-    if st.button("Generate Quiz", key="gen_quiz_btn"):
+    if st.button("🎲 Generate Quiz", key="gen_quiz_btn"):
         if not topic:
             st.error("Please enter a topic.")
         else:
@@ -1442,7 +1461,7 @@ def render_quizzes_page():
     quiz = st.session_state.current_quiz
     if quiz:
         st.write("")
-        st.markdown(f'<span class="lcs-badge-teal">{quiz["subject"]} {quiz["topic"]}</span>', unsafe_allow_html=True)
+        st.markdown(f'<span class="lcs-badge-teal">{quiz["subject"]} · {quiz["topic"]}</span>', unsafe_allow_html=True)
         with st.form("quiz_form"):
             for i, q in enumerate(quiz["questions"]):
                 st.markdown(f"**Q{i+1}. {q['question']}**")
@@ -1451,7 +1470,7 @@ def render_quizzes_page():
                                    key=f"quiz_q_{i}", label_visibility="collapsed")
                 quiz["answers"][i] = choice
                 st.write("")
-            submit_quiz = st.form_submit_button("Submit Quiz")
+            submit_quiz = st.form_submit_button("✅ Submit Quiz")
 
         if submit_quiz:
             total = len(quiz["questions"])
@@ -1471,9 +1490,10 @@ def render_quizzes_page():
             st.success(f"You scored {correct}/{total} ({score_pct}%).")
             for i, q in enumerate(quiz["questions"]):
                 is_correct = quiz["answers"].get(i) == q["correct_index"]
+                icon = "✅" if is_correct else "❌"
                 st.markdown(f"""
                 <div class="lcs-card">
-                    <b>Q{i+1}. {q['question']}</b><br>
+                    {icon} <b>Q{i+1}. {q['question']}</b><br>
                     <span style="color:#6b7280;">Correct answer: {q['options'][q['correct_index']]}</span><br>
                     <span style="color:#6b7280; font-size:13px;">{q.get('explanation','')}</span>
                 </div>
@@ -1493,7 +1513,7 @@ def render_quizzes_page():
 # ============================================================
 def build_mock_exam_messages(subjects, education_level):
     system_prompt = (
-        "You are a mock exam generator for an educational platform. Respond ONLY with valid JSON, no extra text. "
+        "You are a mock-exam generator for an educational platform. Respond ONLY with valid JSON, no extra text. "
         'JSON schema: {"questions": [{"question": str, "options": [str,str,str,str], '
         '"correct_index": int (0-3), "subject": str}]}. Generate exactly 8 questions spread across '
         "the given subjects, appropriate to the education level. Do not include emojis."
@@ -1505,7 +1525,7 @@ def render_mock_exams_page():
     profile = st.session_state.profile
     subjects = profile.get("subjects", [])
 
-    st.info("Suggested time: 20 minutes 8 questions across your subjects.")
+    st.info("⏱️ Suggested time: 20 minutes · 8 questions across your subjects.")
     if "current_mock_exam" not in st.session_state:
         st.session_state.current_mock_exam = None
 
@@ -1513,7 +1533,7 @@ def render_mock_exams_page():
         st.markdown('<p class="lcs-empty-state">Add subjects in the Subjects page first to generate a mock exam.</p>', unsafe_allow_html=True)
         return
 
-    if st.button("Generate Mock Exam", key="gen_mock_exam_btn"):
+    if st.button("🧪 Generate Mock Exam", key="gen_mock_exam_btn"):
         with st.spinner("Assembling your mock exam..."):
             messages = build_mock_exam_messages(subjects, profile.get("education_level", ""))
             parsed, raw = call_groq_json(messages)
@@ -1533,7 +1553,7 @@ def render_mock_exams_page():
                                    key=f"mock_q_{i}", label_visibility="collapsed")
                 exam["answers"][i] = choice
                 st.write("")
-            submit_exam = st.form_submit_button("Submit Exam")
+            submit_exam = st.form_submit_button("✅ Submit Exam")
 
         if submit_exam:
             total = len(exam["questions"])
@@ -1541,10 +1561,10 @@ def render_mock_exams_page():
             score_pct = round((correct / total) * 100) if total else 0
             st.session_state.study_data["quiz_history"].append({
                 "Date": datetime.now().strftime("%Y-%m-%d %H:%M"),
-                "Subject": "Mock Exam", "Topic": "Multi subject",
+                "Subject": "Mock Exam", "Topic": "Multi-subject",
                 "Score": f"{correct}/{total}", "Score %": score_pct,
             })
-            st.success(f"Mock Exam complete you scored {correct}/{total} ({score_pct}%).")
+            st.success(f"Mock Exam complete — you scored {correct}/{total} ({score_pct}%).")
             st.session_state.current_mock_exam = None
 
 # ============================================================
@@ -1611,7 +1631,7 @@ def render_discover_page():
     if not profile.get("skills") and not profile.get("subjects"):
         st.warning("Add some subjects, skills, or interests in My Profile for better career matches.")
 
-    if st.button("Find Career Matches", key="discover_btn"):
+    if st.button("🧭 Find Career Matches", key="discover_btn"):
         with st.spinner("Analyzing your profile against career paths..."):
             messages = build_career_discovery_messages(profile)
             parsed, raw = call_groq_json(messages)
@@ -1638,7 +1658,7 @@ def render_discover_page():
             </div>
             """, unsafe_allow_html=True)
     else:
-        st.markdown('<p class="lcs-empty-state">Click Find Career Matches to discover careers suited to you.</p>', unsafe_allow_html=True)
+        st.markdown('<p class="lcs-empty-state">Click "Find Career Matches" to discover careers suited to you.</p>', unsafe_allow_html=True)
 
 # ============================================================
 # SKILLS PAGE
@@ -1653,7 +1673,7 @@ def render_skills_page():
         with c2:
             st.write("")
             st.write("")
-            add_clicked = st.form_submit_button("Add Skill")
+            add_clicked = st.form_submit_button("➕ Add Skill")
         if add_clicked:
             if not new_skill.strip():
                 st.error("Please enter a skill name.")
@@ -1670,7 +1690,7 @@ def render_skills_page():
         for skill in list(profile["skills"]):
             c1, c2 = st.columns([5, 1])
             with c1:
-                st.markdown(f'<div class="lcs-card">{skill}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="lcs-card">🛠️ {skill}</div>', unsafe_allow_html=True)
             with c2:
                 if st.button("Remove", key=f"remove_skill_{skill}"):
                     profile["skills"].remove(skill)
@@ -1685,7 +1705,7 @@ def build_skill_gap_messages(career, profile):
     system_prompt = (
         "You are a career skills advisor. Respond ONLY with valid JSON, no extra text. "
         'JSON schema: {"missing_skills": [str], "recommendations": [str]}. '
-        "List 4 to 6 missing skills and 3 to 4 recommendations. Do not include emojis."
+        "List 4-6 missing skills and 3-4 recommendations. Do not include emojis."
     )
     user_prompt = (
         f"Target career: {career}\n"
@@ -1709,7 +1729,7 @@ def render_skill_gap_page():
     with c2:
         st.write("")
         st.write("")
-        analyze_clicked = st.button("Analyze Skill Gap")
+        analyze_clicked = st.button("🔍 Analyze Skill Gap")
 
     if analyze_clicked:
         if not career:
@@ -1738,7 +1758,7 @@ def render_skill_gap_page():
             if g.get("recommendations"):
                 st.markdown("Recommendations:")
                 for r in g["recommendations"]:
-                    st.markdown(f"• {r}")
+                    st.markdown(f"- {r}")
             st.write("")
     else:
         st.markdown('<p class="lcs-empty-state">Analyze a career above to see your skill gap.</p>', unsafe_allow_html=True)
@@ -1759,7 +1779,7 @@ def build_career_roadmap_messages(profile, gaps):
         f"Career Goal: {profile.get('career_goal') or 'Not specified'}\n"
         f"Current Skills: {list_to_csv(profile.get('skills', []))}\n"
         f"Missing Skills: {list_to_csv(missing)}\n"
-        "Build a step by step roadmap toward this career goal."
+        "Build a step-by-step roadmap toward this career goal."
     )
     return [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}]
 
@@ -1770,7 +1790,7 @@ def render_career_roadmap_page():
     if not profile.get("career_goal"):
         st.warning("Set a Career Goal in My Profile for a more accurate roadmap.")
 
-    if st.button("Generate Career Roadmap"):
+    if st.button("🚀 Generate Career Roadmap"):
         with st.spinner("Building your career roadmap..."):
             messages = build_career_roadmap_messages(profile, gaps)
             parsed, raw = call_groq_json(messages)
@@ -1786,7 +1806,7 @@ def render_career_roadmap_page():
     if roadmap:
         st.dataframe(pd.DataFrame(roadmap), use_container_width=True, hide_index=True)
     else:
-        st.markdown('<p class="lcs-empty-state">Click Generate Career Roadmap above to build your path.</p>', unsafe_allow_html=True)
+        st.markdown('<p class="lcs-empty-state">Click "Generate Career Roadmap" above to build your path.</p>', unsafe_allow_html=True)
 
 # ============================================================
 # PROJECTS PAGE
@@ -1799,8 +1819,8 @@ def render_projects_page():
         with c2:
             status = st.selectbox("Status", options=["Planned", "In Progress", "Completed"])
         description = st.text_area("Description", height=80)
-        skills_used = st.text_input("Skills Used (comma separated)")
-        submitted = st.form_submit_button("Add Project")
+        skills_used = st.text_input("Skills Used (comma-separated)")
+        submitted = st.form_submit_button("➕ Add Project")
         if submitted:
             if not name.strip():
                 st.error("Please enter a project name.")
@@ -1847,7 +1867,7 @@ def render_certifications_page():
             provider = st.text_input("Provider", placeholder="e.g. Coursera")
         with c3:
             status = st.selectbox("Status", options=["Planned", "In Progress", "Earned"])
-        submitted = st.form_submit_button("Add Certification")
+        submitted = st.form_submit_button("➕ Add Certification")
         if submitted:
             if not name.strip():
                 st.error("Please enter a certification name.")
@@ -1879,7 +1899,7 @@ def build_cv_analysis_messages(cv_text):
 
 def render_cv_analyzer_page():
     cv_text = st.text_area("Paste your CV text here", height=220, placeholder="Paste the full text of your CV...")
-    if st.button("Analyze CV"):
+    if st.button("📄 Analyze CV"):
         if not cv_text.strip():
             st.error("Please paste your CV text first.")
         else:
@@ -1899,16 +1919,16 @@ def render_cv_analyzer_page():
         st.metric("CV Score", f"{analysis.get('score', 0)}/100")
         col1, col2 = st.columns(2)
         with col1:
-            st.markdown("#### Strengths")
+            st.markdown("#### ✅ Strengths")
             for s in analysis.get("strengths", []):
-                st.markdown(f"• {s}")
+                st.markdown(f"- {s}")
         with col2:
-            st.markdown("#### Weaknesses")
+            st.markdown("#### ⚠️ Weaknesses")
             for w in analysis.get("weaknesses", []):
-                st.markdown(f"• {w}")
-        st.markdown("#### Suggestions")
+                st.markdown(f"- {w}")
+        st.markdown("#### 💡 Suggestions")
         for s in analysis.get("suggestions", []):
-            st.markdown(f"• {s}")
+            st.markdown(f"- {s}")
     else:
         st.markdown('<p class="lcs-empty-state">Paste your CV above and click Analyze CV.</p>', unsafe_allow_html=True)
 
@@ -1917,7 +1937,7 @@ def render_cv_analyzer_page():
 # ============================================================
 def build_job_match_messages(job_description, profile):
     system_prompt = (
-        "You are a job fit analyzer. Respond ONLY with valid JSON, no extra text. "
+        "You are a job-fit analyzer. Respond ONLY with valid JSON, no extra text. "
         'JSON schema: {"match_pct": int (0-100), "matching_skills": [str], "missing_skills": [str], "recommendation": str}. '
         "Do not include emojis."
     )
@@ -1933,7 +1953,7 @@ def render_job_matcher_page():
     job_title = st.text_input("Job Title", placeholder="e.g. Junior Data Analyst")
     job_description = st.text_area("Paste Job Description", height=180)
 
-    if st.button("Match This Job"):
+    if st.button("🎯 Match This Job"):
         if not job_description.strip():
             st.error("Please paste a job description first.")
         else:
@@ -1984,7 +2004,7 @@ def build_internship_messages(profile):
 
 def render_internships_page():
     profile = st.session_state.profile
-    if st.button("Suggest Internships"):
+    if st.button("🏢 Suggest Internships"):
         with st.spinner("Finding internships suited to you..."):
             messages = build_internship_messages(profile)
             parsed, raw = call_groq_json(messages)
@@ -2006,7 +2026,7 @@ def render_internships_page():
             </div>
             """, unsafe_allow_html=True)
     else:
-        st.markdown('<p class="lcs-empty-state">Click Suggest Internships to get personalized options.</p>', unsafe_allow_html=True)
+        st.markdown('<p class="lcs-empty-state">Click "Suggest Internships" to get personalized options.</p>', unsafe_allow_html=True)
 
 # ============================================================
 # INTERVIEW PAGE
@@ -2034,7 +2054,7 @@ def render_interview_page():
     profile = st.session_state.profile
     prep = st.session_state.prep_data
 
-    if st.button("Start New Mock Interview"):
+    if st.button("🎤 Start New Mock Interview"):
         with st.spinner("Preparing your first question..."):
             messages = build_interview_question_messages(profile, prep["interview_history"])
             parsed, raw = call_groq_json(messages)
@@ -2063,7 +2083,7 @@ def render_interview_page():
                 prep["interview_active_question"] = nq_parsed.get("question") if nq_parsed else nq_raw
                 st.rerun()
     else:
-        st.markdown('<p class="lcs-empty-state">Click Start New Mock Interview to begin.</p>', unsafe_allow_html=True)
+        st.markdown('<p class="lcs-empty-state">Click "Start New Mock Interview" to begin.</p>', unsafe_allow_html=True)
 
     st.write("")
     st.markdown("#### Interview History")
@@ -2108,7 +2128,7 @@ def render_readiness_page():
     st.markdown("#### Tips to Improve")
     tips = []
     if compute_learning_progress() < 60:
-        tips.append("Keep marking study topics as Strong by revising and taking quizzes.")
+        tips.append("Keep marking study topics as 'Strong' by revising and taking quizzes.")
     if compute_skill_strength() < 60:
         tips.append("Add more skills to your profile as you learn them.")
     if not st.session_state.prep_data.get("cv_analysis"):
@@ -2116,9 +2136,9 @@ def render_readiness_page():
     if not st.session_state.prep_data.get("interview_history"):
         tips.append("Practice at least one mock interview to build confidence.")
     if not tips:
-        tips.append("You are in great shape keep building projects and certifications!")
+        tips.append("You're in great shape — keep building projects and certifications!")
     for t in tips:
-        st.markdown(f"• {t}")
+        st.markdown(f"- {t}")
 
 # ============================================================
 # NEXT ACTION PAGE
@@ -2142,7 +2162,7 @@ def render_next_action_page():
         with c1:
             st.markdown(f"""
             <div class="lcs-card">
-                <b>{action['title']}</b><br>
+                <b>{action['icon']} {action['title']}</b><br>
                 <span style="color:#6b7280; font-size:13px;">{action['reason']}</span>
             </div>
             """, unsafe_allow_html=True)
@@ -2161,7 +2181,7 @@ def render_live_agent_page():
                              if st.session_state.agent_context.get("language", "English") in ["English", "Urdu"] else 0)
         st.session_state.agent_context["language"] = lang
     with c1:
-        st.caption("This is the same agent that follows you on every page via the right side panel expanded here for longer conversations.")
+        st.caption("This is the same agent that follows you on every page via the right-side panel — expanded here for longer conversations.")
 
     with st.container(key="chat_panel_page"):
         render_chat_panel(key_prefix="full_page", message_height=480)
@@ -2220,16 +2240,16 @@ def main():
 
     client_status = get_groq_client()
     if client_status is None:
-        st.warning("Service features are not yet active. Groq API key not detected in this session.")
+        st.warning("AI features are not yet active. Groq API key not detected in this session.")
 
-    main_col, chat_col = st.columns([2.6, 1.4], gap="large")
+    main_col, chat_col = st.columns([3, 1.05], gap="medium")
 
     with main_col:
         render_page(st.session_state.current_page)
 
     with chat_col:
         with st.container(key="chat_panel"):
-            render_chat_panel(key_prefix="global", message_height=420)
+            render_chat_panel(key_prefix="global", message_height=380)
 
     render_footer()
 
